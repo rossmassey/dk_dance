@@ -13,7 +13,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     overflow: hidden;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', Arial, Helvetica, sans-serif;
 }
 
 .container {
@@ -379,7 +379,7 @@ body {
     top: 100vh;
     width: 100%;
     padding: 20px;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', Arial, Helvetica, sans-serif;
     font-size: 16px;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.8);
@@ -399,11 +399,45 @@ body {
 }
 
 .lyrics-content.scrolling {
-    animation: lyrics-scroll 188s linear forwards; /* Match full song length 3:23 (203s) minus 15s offset */
+    animation: lyrics-scroll 170s linear forwards; /* Adjusted for mobile performance - faster scrolling */
 }
 
 .lyrics-content.paused {
     animation-play-state: paused !important;
+}
+
+/* Mobile landscape orientation adjustments */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    /* Faster animation for landscape mobile to account for shorter screen height */
+    .lyrics-content.scrolling {
+        animation: lyrics-scroll-landscape 140s linear forwards;
+    }
+    
+    /* Alternative keyframe for landscape with adjusted starting position */
+    @keyframes lyrics-scroll-landscape {
+        0% {
+            top: 75vh; /* Start closer to account for shorter viewport height */
+        }
+        100% {
+            top: -150%; /* Scroll further out to account for shorter screen */
+        }
+    }
+}
+
+/* Extra small mobile landscape screens */
+@media screen and (orientation: landscape) and (max-height: 400px) {
+    .lyrics-content.scrolling {
+        animation: lyrics-scroll-small-landscape 120s linear forwards;
+    }
+    
+    @keyframes lyrics-scroll-small-landscape {
+        0% {
+            top: 65vh;
+        }
+        100% {
+            top: -200%;
+        }
+    }
 }
 
 
