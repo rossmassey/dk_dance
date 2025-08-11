@@ -1,0 +1,1 @@
+beavert_01.png.png 6 6, beavert_02.png.png 41 6, beavert_03.png.png 77 8, beavert_04.png.png 118 7, beavert_05.png.png 162 5, beavert_06.png.png 207 6, beavert_07.png.png 248 5, beavert_08.png.png 290 5, beavert_09.png.png 333 6, beavert_10.png.png 374 6.

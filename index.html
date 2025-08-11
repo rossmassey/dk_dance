@@ -12,8 +12,21 @@
             <img id="dk-dancer" src="sprite_sheet/dk_dance/dkc_dk_dance_sheet_01.png" alt="DK Dancing">
         </div>
         
+        <div id="beaver-container" class="beaver-container">
+            <img id="beaver-walker" src="sprite_sheet/beaver/beavert_01.png" alt="Walking Beaver">
+        </div>
+        
+        <div id="bee-container" class="bee-container">
+            <img id="bee-flyer" src="sprite_sheet/bee/bee_01.png" alt="Flying Bee">
+        </div>
+        
         <audio id="dk-rap" loop>
             <source src="music/dkrap.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <audio id="okay-sound">
+            <source src="music/OKAY.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         
@@ -23,8 +36,15 @@
             <button id="pause-button" class="control-button" style="display: none;">⏸️ Pause</button>
             <button id="resume-button" class="control-button" style="display: none;">▶️ Resume</button>
         </div>
+        
+
     </div>
     
-    <script src="script.js"></script>
+    <!-- Load scripts in dependency order -->
+    <script src="js/BananaAnimation.js"></script>
+    <script src="js/BeaverWalker.js"></script>
+    <script src="js/BeeFlyer.js"></script>
+    <script src="js/DKDancer.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
