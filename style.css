@@ -400,9 +400,6 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     white-space: pre-line;
     text-align: left;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(5px);
     transition: none; /* Disable any CSS transitions for smooth JS control */
 }
 

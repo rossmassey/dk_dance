@@ -4,7 +4,6 @@ window.DKDancer = class DKDancer {
         this.dkImage = document.getElementById('dk-dancer');
         this.audio = document.getElementById('dk-rap');
         this.okayAudio = document.getElementById('okay-sound');
-        this.jungleAudio = document.getElementById('jungle-music');
         this.playButton = document.getElementById('play-button');
         
         this.currentFrame = 1;
@@ -116,17 +115,14 @@ window.DKDancer = class DKDancer {
         // Force preload by setting the preload attribute and loading
         this.audio.preload = 'auto';
         this.okayAudio.preload = 'auto';
-        this.jungleAudio.preload = 'auto';
         
         // Enable play through for mobile
         this.audio.muted = false;
         this.okayAudio.muted = false;
-        this.jungleAudio.muted = false;
         
         // Load the audio files
         this.audio.load();
         this.okayAudio.load();
-        this.jungleAudio.load();
         
         // Add event listeners to track loading
         this.audio.addEventListener('canplaythrough', () => {
@@ -135,10 +131,6 @@ window.DKDancer = class DKDancer {
         
         this.okayAudio.addEventListener('canplaythrough', () => {
             console.log('🎵 OKAY sound preloaded successfully!');
-        }, { once: true });
-        
-        this.jungleAudio.addEventListener('canplaythrough', () => {
-            console.log('🎵 Jungle music preloaded successfully!');
         }, { once: true });
         
         console.log('🎵 Audio preloading initiated...');
@@ -331,10 +323,7 @@ window.DKDancer = class DKDancer {
             console.log('DK Rap ready to rock!');
         });
         
-        this.audio.addEventListener('ended', () => {
-            console.log('🎵 DK Rap ended, starting jungle music...');
-            this.startJungleMusic();
-        });
+        // DK Rap will loop automatically due to the 'loop' attribute in HTML
         
         // Error handling
         this.audio.addEventListener('error', (e) => {
@@ -411,8 +400,7 @@ window.DKDancer = class DKDancer {
             // Attempt to play each audio element briefly to unlock them
             const unlockPromises = [
                 this.playAndPause(this.audio),
-                this.playAndPause(this.okayAudio),
-                this.playAndPause(this.jungleAudio)
+                this.playAndPause(this.okayAudio)
             ];
             
             await Promise.all(unlockPromises);
@@ -476,8 +464,6 @@ window.DKDancer = class DKDancer {
         // Stop all audio
         this.audio.pause();
         this.audio.currentTime = 0;
-        this.jungleAudio.pause();
-        this.jungleAudio.currentTime = 0;
         
         document.body.classList.remove('dancing', 'music-playing');
         
@@ -499,16 +485,7 @@ window.DKDancer = class DKDancer {
         console.log('Dance party over!');
     }
     
-    startJungleMusic() {
-        // Switch to jungle music and keep dancing
-        this.jungleAudio.currentTime = 0;
-        this.playAudioWithRetry(this.jungleAudio, 'Jungle music').then(() => {
-            console.log('🌴 Jungle music is now playing! 🌴');
-            // Keep all animations running
-        }).catch((error) => {
-            console.error('Failed to play jungle music:', error);
-        });
-    }
+
     
     nextFrame() {
         const currentTime = Date.now();
@@ -618,7 +595,6 @@ window.DKDancer = class DKDancer {
     
     pauseMusic() {
         this.audio.pause();
-        this.jungleAudio.pause();
         document.body.classList.remove('dancing');
         
         if (this.animationInterval) {
@@ -638,12 +614,8 @@ window.DKDancer = class DKDancer {
     }
     
     resumeMusic() {
-        // Resume whichever audio was playing
-        if (!this.audio.ended) {
-            this.audio.play();
-        } else {
-            this.jungleAudio.play();
-        }
+        // Resume the DK Rap
+        this.audio.play();
         this.startDancing();
         
         // Resume all creatures, bananas, and lyrics
@@ -657,7 +629,7 @@ window.DKDancer = class DKDancer {
     }
     
     toggleMusic() {
-        const isPlaying = !this.audio.paused || !this.jungleAudio.paused;
+        const isPlaying = !this.audio.paused;
         
         if (!isPlaying) {
             if (this.audio.currentTime === 0) {
@@ -676,7 +648,7 @@ window.DKDancer = class DKDancer {
             return;
         }
         
-        const isPlaying = !this.audio.paused || !this.jungleAudio.paused;
+        const isPlaying = !this.audio.paused;
         
         if (!isPlaying) {
             // Resuming - no OKAY sound
