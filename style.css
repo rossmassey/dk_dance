@@ -361,7 +361,7 @@ body {
     position: fixed;
     top: 0;
     right: 20px;
-    width: 450px; /* Increased width to prevent wrapping of long lines */
+    width: 350px; /* Reduced width to make room for controls */
     height: 100vh;
     pointer-events: none;
     z-index: 5;
@@ -376,74 +376,249 @@ body {
 
 .lyrics-content {
     position: absolute;
-    top: 100vh;
+    top: 100vh; /* Start below viewport */
     width: 100%;
     padding: 20px;
     font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     white-space: pre-line;
+    text-align: left;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    transition: none; /* Disable any CSS transitions for smooth JS control */
+}
+
+/* Lyrics Controls */
+.lyrics-controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 15;
+    pointer-events: auto;
+}
+
+.lyrics-toggle {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #FFD700;
+    border-radius: 50%;
+    color: #FFD700;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.lyrics-toggle:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.lyrics-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #FFD700;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    transform: translateY(-10px);
+}
+
+.lyrics-container.visible ~ .lyrics-controls .lyrics-slider-container {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.lyrics-slider {
+    width: 200px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.lyrics-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    background: #FFD700;
+    border-radius: 50%;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.lyrics-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.lyrics-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #FFD700;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.auto-scroll-toggle {
+    padding: 8px 16px;
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid #FFD700;
+    border-radius: 6px;
+    color: #FFD700;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
     text-align: center;
+    min-width: 60px;
 }
 
-/* Scrolling animation for lyrics */
-@keyframes lyrics-scroll {
-    0% {
-        top: 85vh; /* Start higher up to simulate 15 seconds already elapsed */
-    }
-    100% {
-        top: -100%;
-    }
+.auto-scroll-toggle:hover {
+    background: rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.lyrics-content.scrolling {
-    animation: lyrics-scroll 170s linear forwards; /* Adjusted for mobile performance - faster scrolling */
-}
-
-.lyrics-content.paused {
-    animation-play-state: paused !important;
-}
-
-/* Mobile landscape orientation adjustments */
-@media screen and (orientation: landscape) and (max-height: 600px) {
-    /* Faster animation for landscape mobile to account for shorter screen height */
-    .lyrics-content.scrolling {
-        animation: lyrics-scroll-landscape 140s linear forwards;
-    }
-    
-    /* Alternative keyframe for landscape with adjusted starting position */
-    @keyframes lyrics-scroll-landscape {
-        0% {
-            top: 75vh; /* Start closer to account for shorter viewport height */
-        }
-        100% {
-            top: -150%; /* Scroll further out to account for shorter screen */
-        }
-    }
-}
-
-/* Extra small mobile landscape screens */
-@media screen and (orientation: landscape) and (max-height: 400px) {
-    .lyrics-content.scrolling {
-        animation: lyrics-scroll-small-landscape 120s linear forwards;
-    }
-    
-    @keyframes lyrics-scroll-small-landscape {
-        0% {
-            top: 65vh;
-        }
-        100% {
-            top: -200%;
-        }
-    }
-}
-
-/* Force font on mobile devices */
+/* Mobile responsive adjustments */
 @media screen and (max-width: 768px) {
     body, .lyrics-content {
         font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif !important;
+    }
+    
+    .lyrics-container {
+        width: 280px; /* Smaller width for mobile */
+        right: 10px;
+    }
+    
+    .lyrics-content {
+        font-size: 12px;
+        padding: 15px;
+    }
+    
+    .lyrics-controls {
+        top: 10px;
+        left: 10px;
+    }
+    
+    .lyrics-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+    
+    .lyrics-slider {
+        width: 160px; /* Shorter slider for mobile */
+    }
+}
+
+/* Extra small mobile screens */
+@media screen and (max-width: 480px) {
+    .lyrics-container {
+        width: 250px;
+        right: 5px;
+    }
+    
+    .lyrics-content {
+        font-size: 11px;
+        padding: 10px;
+    }
+    
+    .lyrics-controls {
+        top: 5px;
+        left: 5px;
+    }
+    
+    .lyrics-slider {
+        width: 140px;
+    }
+}
+
+/* Landscape mobile orientation */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    .lyrics-container {
+        width: 250px;
+        right: 10px;
+    }
+    
+    .lyrics-content {
+        font-size: 11px;
+        padding: 10px;
+    }
+    
+    .lyrics-controls {
+        top: 5px;
+        left: 5px;
+        gap: 5px;
+    }
+    
+    .lyrics-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .lyrics-slider-container {
+        padding: 8px;
+    }
+    
+    .lyrics-slider {
+        width: 120px;
+    }
+    
+    .auto-scroll-toggle {
+        padding: 6px 12px;
+        font-size: 10px;
+        min-width: 50px;
+    }
+}
+
+/* Very small landscape screens */
+@media screen and (orientation: landscape) and (max-height: 400px) {
+    .lyrics-container {
+        width: 200px;
+        font-size: 10px;
+    }
+    
+    .lyrics-controls {
+        gap: 3px;
+    }
+    
+    .lyrics-toggle {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+    
+    .lyrics-slider {
+        width: 100px;
     }
 }
 
