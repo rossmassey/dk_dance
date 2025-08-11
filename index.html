@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="dance-container">
+            <img id="dk-dancer" src="sprite_sheet/dk_dance/dkc_dk_dance_sheet_01.png" alt="DK Dancing">
+        </div>
+        
+        <audio id="dk-rap" loop>
+            <source src="music/dkrap.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <button id="play-button" class="play-button">🎵</button>
+        
+        <div class="controls">
+            <button id="pause-button" class="control-button" style="display: none;">⏸️ Pause</button>
+            <button id="resume-button" class="control-button" style="display: none;">▶️ Resume</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
