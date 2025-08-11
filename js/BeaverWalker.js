@@ -18,7 +18,51 @@ window.BeaverWalker = class BeaverWalker {
         this.walkingFrameEnd = 10;
         this.stopFrames = [1, 2]; // frames for stopping animation
         
+        // Preload all beaver frames to prevent loading errors
+        this.preloadedImages = new Map();
+        this.preloadFrames();
+        
         this.scheduleNextWalk();
+    }
+    
+    preloadFrames() {
+        console.log('🦫 Preloading beaver animation frames...');
+        
+        let loadedCount = 0;
+        const totalFrames = (this.walkingFrameEnd - this.walkingFrameStart + 1) + 2; // walking frames + stop frames
+        
+        const checkAllLoaded = () => {
+            loadedCount++;
+            if (loadedCount === totalFrames) {
+                console.log('🦫 All beaver frames preloaded and cached!');
+            }
+        };
+        
+        // Preload walking frames (3-10)
+        for (let i = this.walkingFrameStart; i <= this.walkingFrameEnd; i++) {
+            const frameNumber = i.toString().padStart(2, '0');
+            const img = new Image();
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load beaver frame ${frameNumber}`);
+                checkAllLoaded();
+            };
+            img.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+            this.preloadedImages.set(i, img);
+        }
+        
+        // Preload stop frames (1-2)
+        for (let i = 1; i <= 2; i++) {
+            const frameNumber = i.toString().padStart(2, '0');
+            const img = new Image();
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load beaver frame ${frameNumber}`);
+                checkAllLoaded();
+            };
+            img.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+            this.preloadedImages.set(i, img);
+        }
     }
     
     scheduleNextWalk() {
@@ -112,8 +156,17 @@ window.BeaverWalker = class BeaverWalker {
         
         const stopInterval = setInterval(() => {
             if (stopFrameIndex < stopSequence.length) {
-                const frameNumber = stopSequence[stopFrameIndex].toString().padStart(2, '0');
-                this.beaverImage.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+                const frameNum = stopSequence[stopFrameIndex];
+                
+                // Use preloaded image instead of changing src (prevents HTTP requests)
+                const preloadedImg = this.preloadedImages.get(frameNum);
+                if (preloadedImg && preloadedImg.complete) {
+                    this.beaverImage.src = preloadedImg.src;
+                } else {
+                    // Fallback to original method if preload failed
+                    const frameNumber = frameNum.toString().padStart(2, '0');
+                    this.beaverImage.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+                }
                 stopFrameIndex++;
             } else {
                 clearInterval(stopInterval);
@@ -174,9 +227,15 @@ window.BeaverWalker = class BeaverWalker {
             this.currentFrame = this.walkingFrameStart; // Loop back to first walking frame
         }
         
-        // Update the image source with zero-padded frame number
-        const frameNumber = this.currentFrame.toString().padStart(2, '0');
-        this.beaverImage.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+        // Use preloaded image instead of changing src (prevents HTTP requests)
+        const preloadedImg = this.preloadedImages.get(this.currentFrame);
+        if (preloadedImg && preloadedImg.complete) {
+            this.beaverImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            const frameNumber = this.currentFrame.toString().padStart(2, '0');
+            this.beaverImage.src = `sprite_sheet/beaver/beavert_${frameNumber}.png`;
+        }
     }
     
     // Global pause/resume methods

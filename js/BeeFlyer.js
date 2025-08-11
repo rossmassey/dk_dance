@@ -10,7 +10,37 @@ window.BeeFlyer = class BeeFlyer {
         this.frameRate = 120; // Fast frame rate for buzzing effect
         this.flyTimer = null;
         
+        // Preload all bee frames to prevent loading errors
+        this.preloadedImages = new Map();
+        this.preloadFrames();
+        
         this.scheduleNextFlight();
+    }
+    
+    preloadFrames() {
+        console.log('🐝 Preloading bee animation frames...');
+        
+        let loadedCount = 0;
+        
+        const checkAllLoaded = () => {
+            loadedCount++;
+            if (loadedCount === this.totalFrames) {
+                console.log('🐝 All bee frames preloaded and cached!');
+            }
+        };
+        
+        // Preload bee frames (1-4)
+        for (let i = 1; i <= this.totalFrames; i++) {
+            const frameNumber = i.toString().padStart(2, '0');
+            const img = new Image();
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load bee frame ${frameNumber}`);
+                checkAllLoaded();
+            };
+            img.src = `sprite_sheet/bee/bee_${frameNumber}.png`;
+            this.preloadedImages.set(i, img);
+        }
     }
     
     scheduleNextFlight() {
@@ -69,9 +99,15 @@ window.BeeFlyer = class BeeFlyer {
             this.currentFrame = 1; // Loop back to first frame
         }
         
-        // Update the image source with zero-padded frame number
-        const frameNumber = this.currentFrame.toString().padStart(2, '0');
-        this.beeImage.src = `sprite_sheet/bee/bee_${frameNumber}.png`;
+        // Use preloaded image instead of changing src (prevents HTTP requests)
+        const preloadedImg = this.preloadedImages.get(this.currentFrame);
+        if (preloadedImg && preloadedImg.complete) {
+            this.beeImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            const frameNumber = this.currentFrame.toString().padStart(2, '0');
+            this.beeImage.src = `sprite_sheet/bee/bee_${frameNumber}.png`;
+        }
     }
     
     // Global pause/resume methods
