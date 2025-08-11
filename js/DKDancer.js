@@ -22,8 +22,8 @@ window.DKDancer = class DKDancer {
         this.fingerPointRange = { start: 11, end: 23, switchFrame: 11 }; // frame 11 matches frame 5
         this.fingerPointDirection = 'forward'; // 'forward' or 'reverse'
         this.moveStartTime = 0; // Track when current move started
-        this.minMoveDuration = 3000; // 3 seconds minimum before allowing switch
-        this.maxMoveDuration = 10000; // 10 seconds maximum before forcing switch
+        this.minMoveDuration = 5000; // 5 seconds minimum before allowing switch (increased)
+        this.maxMoveDuration = 15000; // 15 seconds maximum before forcing switch (increased)
         
         // Intro animation settings
         this.swingFrameRate = 40; // 2x faster for intro animation (was 80ms)
@@ -37,7 +37,12 @@ window.DKDancer = class DKDancer {
         this.beaver = beaver;
         this.bee = bee;
         
+        // Preload all DK frames to prevent loading errors
+        this.preloadedSwingImages = new Map();
+        this.preloadedDanceImages = new Map();
+        
         this.buildIntroSequence();
+        this.preloadFrames();
         this.init();
     }
     
@@ -62,6 +67,48 @@ window.DKDancer = class DKDancer {
         console.log(`🎬 Intro sequence built: ${this.introSequence.length} frames`);
     }
     
+    preloadFrames() {
+        console.log('🕺 Preloading DK animation frames...');
+        
+        let loadedCount = 0;
+        const totalSwingFrames = 53; // swing frames 1-53
+        const totalDanceFrames = 23; // dance frames 1-23
+        const totalFrames = totalSwingFrames + totalDanceFrames;
+        
+        const checkAllLoaded = () => {
+            loadedCount++;
+            if (loadedCount === totalFrames) {
+                console.log('🕺 All DK frames preloaded and cached!');
+            }
+        };
+        
+        // Preload swing frames (1-53)
+        for (let i = 1; i <= 53; i++) {
+            const frameNumber = i.toString().padStart(2, '0');
+            const img = new Image();
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load DK swing frame ${frameNumber}`);
+                checkAllLoaded();
+            };
+            img.src = `sprite_sheet/dk_swing/swing_dk-export_${frameNumber}.png`;
+            this.preloadedSwingImages.set(i, img);
+        }
+        
+        // Preload dance frames (1-23)
+        for (let i = 1; i <= 23; i++) {
+            const frameNumber = i.toString().padStart(2, '0');
+            const img = new Image();
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load DK dance frame ${frameNumber}`);
+                checkAllLoaded();
+            };
+            img.src = `sprite_sheet/dk_dance/dkc_dk_dance_sheet_${frameNumber}.png`;
+            this.preloadedDanceImages.set(i, img);
+        }
+    }
+    
     playIntroAnimation() {
         if (this.isPlayingIntro) return;
         
@@ -71,8 +118,14 @@ window.DKDancer = class DKDancer {
         
         // Set the first swing frame BEFORE making DK visible
         const firstFrame = this.introSequence[0];
-        const paddedFrameNumber = firstFrame.toString().padStart(2, '0');
-        this.dkImage.src = `sprite_sheet/dk_swing/swing_dk-export_${paddedFrameNumber}.png`;
+        const preloadedImg = this.preloadedSwingImages.get(firstFrame);
+        if (preloadedImg && preloadedImg.complete) {
+            this.dkImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            const paddedFrameNumber = firstFrame.toString().padStart(2, '0');
+            this.dkImage.src = `sprite_sheet/dk_swing/swing_dk-export_${paddedFrameNumber}.png`;
+        }
         
         // Clear any existing state and show DK with correct frame already loaded and position at top
         this.dkImage.classList.remove('flipped', 'falling', 'dancing-final');
@@ -103,8 +156,16 @@ window.DKDancer = class DKDancer {
         }
         
         const frameNumber = this.introSequence[this.currentIntroIndex];
-        const paddedFrameNumber = frameNumber.toString().padStart(2, '0');
-        this.dkImage.src = `sprite_sheet/dk_swing/swing_dk-export_${paddedFrameNumber}.png`;
+        
+        // Use preloaded image instead of changing src (prevents HTTP requests)
+        const preloadedImg = this.preloadedSwingImages.get(frameNumber);
+        if (preloadedImg && preloadedImg.complete) {
+            this.dkImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            const paddedFrameNumber = frameNumber.toString().padStart(2, '0');
+            this.dkImage.src = `sprite_sheet/dk_swing/swing_dk-export_${paddedFrameNumber}.png`;
+        }
         
         // Check if we've reached frame 28 - start falling animation!
         if (frameNumber >= 28 && !this.fallingStarted) {
@@ -182,7 +243,15 @@ window.DKDancer = class DKDancer {
         this.currentMove = 'handsOut'; // Start with hands out move
         this.fingerPointDirection = 'forward'; // Initialize finger point direction
         this.moveStartTime = Date.now(); // Initialize move timing
-        this.dkImage.src = `sprite_sheet/dk_dance/dkc_dk_dance_sheet_01.png`;
+        
+        // Use preloaded dance image
+        const preloadedImg = this.preloadedDanceImages.get(1);
+        if (preloadedImg && preloadedImg.complete) {
+            this.dkImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            this.dkImage.src = `sprite_sheet/dk_dance/dkc_dk_dance_sheet_01.png`;
+        }
         
         // Start the dance frame cycling (music should already be playing)
         if (this.musicStarted) {
@@ -341,10 +410,10 @@ window.DKDancer = class DKDancer {
             
             // If we reach the end of hands out move, decide what to do
             if (this.currentFrame > this.handsOutRange.end) {
-                if (mustSwitch || (canSwitch && Math.random() < 0.3)) {
+                if (mustSwitch || (canSwitch && Math.random() < 0.15)) { // Reduced probability from 0.3 to 0.15
                     // Time to switch moves
                     const random = Math.random();
-                    if (random < 0.5) { // Switch to finger point
+                    if (random < 0.4) { // Reduced fingerPoint probability from 0.5 to 0.4
                         this.switchToMove('fingerPoint');
                         this.fingerPointDirection = 'forward';
                         this.currentFrame = this.fingerPointRange.start; // Start at frame 11
@@ -374,7 +443,7 @@ window.DKDancer = class DKDancer {
                 this.currentFrame--;
                 if (this.currentFrame < this.fingerPointRange.start) {
                     // Completed full forward+reverse cycle
-                    if (mustSwitch || (canSwitch && Math.random() < 0.3)) {
+                    if (mustSwitch || (canSwitch && Math.random() < 0.1)) { // Much lower probability to switch from fingerPoint
                         // Switch to hands out move
                         const random = Math.random();
                         if (random < 0.5) {
@@ -395,9 +464,15 @@ window.DKDancer = class DKDancer {
         // Update flip styling
         this.updateFlipStyling();
         
-        // Update the image source with zero-padded frame number
-        const frameNumber = this.currentFrame.toString().padStart(2, '0');
-        this.dkImage.src = `sprite_sheet/dk_dance/dkc_dk_dance_sheet_${frameNumber}.png`;
+        // Use preloaded image instead of changing src (prevents HTTP requests)
+        const preloadedImg = this.preloadedDanceImages.get(this.currentFrame);
+        if (preloadedImg && preloadedImg.complete) {
+            this.dkImage.src = preloadedImg.src;
+        } else {
+            // Fallback to original method if preload failed
+            const frameNumber = this.currentFrame.toString().padStart(2, '0');
+            this.dkImage.src = `sprite_sheet/dk_dance/dkc_dk_dance_sheet_${frameNumber}.png`;
+        }
     }
     
     switchToMove(newMove) {
@@ -411,14 +486,21 @@ window.DKDancer = class DKDancer {
     }
     
     updateFlipStyling() {
-        if (this.currentMove === 'handsOutFlipped') {
+        const wasFlipped = this.dkImage.classList.contains('flipped');
+        const shouldBeFlipped = this.currentMove === 'handsOutFlipped';
+        
+        if (shouldBeFlipped && !wasFlipped) {
             this.dkImage.classList.add('flipped');
             console.log('🔄 DK is now flipped (facing left)!');
-        } else {
+        } else if (!shouldBeFlipped && wasFlipped) {
             this.dkImage.classList.remove('flipped');
             if (this.currentMove === 'handsOut') {
                 console.log('🔄 DK is now facing right!');
             }
+        } else if (shouldBeFlipped) {
+            this.dkImage.classList.add('flipped'); // Ensure class is set
+        } else {
+            this.dkImage.classList.remove('flipped'); // Ensure class is removed
         }
     }
     
