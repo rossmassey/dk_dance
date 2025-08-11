@@ -66,19 +66,22 @@ window.LyricsDisplay = class LyricsDisplay {
         // Touch scrolling for mobile
         let startY = 0;
         let isDragging = false;
-        let wasAutoScrolling = false;
         let touchEndTimeout = null;
+        
+        // Store wasAutoScrolling as instance property so it persists
+        this.wasAutoScrollingBeforeTouch = false;
         
         this.lyricsContainer.addEventListener('touchstart', (e) => {
             if (this.isVisible) {
                 startY = e.touches[0].clientY;
                 isDragging = true;
                 // Remember if auto-scroll was active before stopping
-                wasAutoScrolling = this.isAutoScrolling;
+                this.wasAutoScrollingBeforeTouch = this.isAutoScrolling;
                 // Stop auto-scroll when user starts manually scrolling
                 if (this.isAutoScrolling) {
                     this.stopAutoScroll();
                 }
+                console.log('📜 Touch started, auto-scroll was:', this.wasAutoScrollingBeforeTouch);
             }
         });
         
@@ -100,11 +103,12 @@ window.LyricsDisplay = class LyricsDisplay {
         
         this.lyricsContainer.addEventListener('touchend', () => {
             isDragging = false;
+            console.log('📜 Touch ended, will resume auto-scroll?', this.wasAutoScrollingBeforeTouch);
             
             // Resume auto-scroll after a short delay if it was previously active
-            if (wasAutoScrolling && this.isVisible) {
+            if (this.wasAutoScrollingBeforeTouch && this.isVisible) {
                 touchEndTimeout = setTimeout(() => {
-                    if (!isDragging && !this.isAutoScrolling) {
+                    if (!isDragging && !this.isAutoScrolling && this.isVisible) {
                         this.isAutoScrolling = true;
                         this.startAutoScroll();
                         console.log('📜 Auto-scroll resumed after manual touch');
@@ -240,17 +244,27 @@ Aww yeah!`;
     }
     
     updateLyricsPosition() {
-        // Calculate the scroll position based on content height and viewport
+        // Force recalculation of container dimensions
         const containerHeight = this.lyricsContainer.offsetHeight;
         const contentHeight = this.lyricsContent.offsetHeight;
         
-        // Calculate top position: start below container viewport, end above container viewport
-        // This ensures consistent behavior regardless of container positioning
+        // Calculate top position: start below container, end above container
+        // Use container height as reference, not viewport height
         const startPosition = containerHeight;
         const endPosition = -contentHeight;
         const currentPosition = startPosition + (endPosition - startPosition) * this.scrollPosition;
         
         this.lyricsContent.style.top = `${currentPosition}px`;
+        
+        // Debug logging for mobile positioning issues
+        if (window.innerWidth <= 768) {
+            console.log('📜 Mobile positioning:', {
+                containerHeight,
+                contentHeight,
+                scrollPosition: this.scrollPosition,
+                currentPosition
+            });
+        }
     }
     
     toggleVisibility() {
@@ -261,9 +275,16 @@ Aww yeah!`;
             this.lyricsToggle.innerHTML = '❌';
             this.lyricsToggle.title = 'Hide Lyrics';
             // Ensure proper initial positioning when showing lyrics
+            // Use multiple timeouts to handle mobile layout settling
             setTimeout(() => {
                 this.updateLyricsPosition();
             }, 50);
+            setTimeout(() => {
+                this.updateLyricsPosition();
+            }, 200);
+            setTimeout(() => {
+                this.updateLyricsPosition();
+            }, 500);
             console.log('📜 Lyrics shown');
         } else {
             this.lyricsContainer.classList.remove('visible');
@@ -314,10 +335,8 @@ Aww yeah!`;
     
     // Legacy methods for compatibility with existing code
     startScrolling() {
-        console.log('📜 Starting lyrics with auto-scroll...');
-        if (!this.isVisible) {
-            this.toggleVisibility();
-        }
+        console.log('📜 Starting auto-scroll (lyrics remain hidden until user shows them)...');
+        // Don't automatically show lyrics - let user control visibility with toggle button
         if (!this.isAutoScrolling) {
             this.toggleAutoScroll();
         }
@@ -338,11 +357,9 @@ Aww yeah!`;
     }
     
     stopScrolling() {
-        console.log('📜 Stopping lyrics...');
+        console.log('📜 Stopping auto-scroll...');
         this.stopAutoScroll();
-        if (this.isVisible) {
-            this.toggleVisibility();
-        }
+        // Don't automatically hide lyrics - let user control visibility
         this.resetToStart();
     }
     
