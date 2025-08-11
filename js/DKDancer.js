@@ -118,6 +118,11 @@ window.DKDancer = class DKDancer {
         this.okayAudio.preload = 'auto';
         this.jungleAudio.preload = 'auto';
         
+        // Enable play through for mobile
+        this.audio.muted = false;
+        this.okayAudio.muted = false;
+        this.jungleAudio.muted = false;
+        
         // Load the audio files
         this.audio.load();
         this.okayAudio.load();
@@ -163,9 +168,7 @@ window.DKDancer = class DKDancer {
         
         // Play OKAY sound and start lyrics early
         this.okayAudio.currentTime = 0;
-        this.okayAudio.play().catch(error => {
-            console.error('Could not play OKAY sound:', error);
-        });
+        this.playAudioWithRetry(this.okayAudio, 'OKAY sound');
         
         // Start lyrics scrolling at the very beginning
         if (this.lyrics) {
@@ -242,12 +245,12 @@ window.DKDancer = class DKDancer {
             console.log('🎵 Frame 40 reached! Starting music and bounce effect!');
             
             // Start the music
-            this.audio.play().then(() => {
+            this.playAudioWithRetry(this.audio, 'DK Rap').then(() => {
                 console.log('🎵 DK Rap is playing during swing! 🎵');
                 document.body.classList.add('music-playing');
                 document.body.classList.add('dancing'); // Add bouncing effect
             }).catch((error) => {
-                console.error('Failed to play audio:', error);
+                console.error('Failed to play DK Rap:', error);
             });
         }
         
@@ -294,13 +297,13 @@ window.DKDancer = class DKDancer {
             this.startDancing();
         } else {
             // Fallback: start music if it somehow didn't start
-            this.audio.play().then(() => {
+            this.playAudioWithRetry(this.audio, 'DK Rap').then(() => {
                 console.log('🎵 DK Rap is playing! 🎵');
                 document.body.classList.add('music-playing');
                 document.body.classList.add('dancing');
                 this.startDancing();
             }).catch((error) => {
-                console.error('Failed to play audio:', error);
+                console.error('Failed to play DK Rap:', error);
                 this.resetButtons();
             });
         }
@@ -392,11 +395,63 @@ window.DKDancer = class DKDancer {
         console.log('🎚️ Dance speed updated to: ' + newFrameRate + 'ms');
     }
     
-    startDanceParty() {
+    async startDanceParty() {
+        // Unlock audio context for mobile browsers
+        await this.unlockAudioContext();
+        
         this.playButton.style.display = 'none';
         
         // Start with intro animation instead of going directly to dance
         this.playIntroAnimation();
+    }
+    
+    async unlockAudioContext() {
+        // Create a silent audio play attempt to unlock audio context on mobile
+        try {
+            // Attempt to play each audio element briefly to unlock them
+            const unlockPromises = [
+                this.playAndPause(this.audio),
+                this.playAndPause(this.okayAudio),
+                this.playAndPause(this.jungleAudio)
+            ];
+            
+            await Promise.all(unlockPromises);
+            console.log('🔓 Audio context unlocked for mobile!');
+        } catch (error) {
+            console.warn('Audio unlock attempt failed:', error);
+        }
+    }
+    
+    async playAndPause(audioElement) {
+        try {
+            audioElement.volume = 0;
+            await audioElement.play();
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            audioElement.volume = audioElement === this.audio ? 0.7 : 1.0; // Restore original volume
+        } catch (error) {
+            // Expected on some browsers, ignore
+        }
+    }
+    
+    async playAudioWithRetry(audioElement, audioName, maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                await audioElement.play();
+                console.log(`🎵 ${audioName} playing successfully!`);
+                return;
+            } catch (error) {
+                console.warn(`Attempt ${attempt} to play ${audioName} failed:`, error.message);
+                
+                if (attempt === maxRetries) {
+                    console.error(`Failed to play ${audioName} after ${maxRetries} attempts`);
+                    throw error;
+                }
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+            }
+        }
     }
     
     startDancing() {
@@ -447,7 +502,7 @@ window.DKDancer = class DKDancer {
     startJungleMusic() {
         // Switch to jungle music and keep dancing
         this.jungleAudio.currentTime = 0;
-        this.jungleAudio.play().then(() => {
+        this.playAudioWithRetry(this.jungleAudio, 'Jungle music').then(() => {
             console.log('🌴 Jungle music is now playing! 🌴');
             // Keep all animations running
         }).catch((error) => {
@@ -629,9 +684,7 @@ window.DKDancer = class DKDancer {
         } else {
             // Pausing - play OKAY sound
             this.okayAudio.currentTime = 0;
-            this.okayAudio.play().catch(error => {
-                console.error('Could not play OKAY sound:', error);
-            });
+            this.playAudioWithRetry(this.okayAudio, 'OKAY sound');
             this.pauseMusic();
         }
     }
