@@ -1,12 +1,11 @@
 // DK Dance Animation Controller
 window.DKDancer = class DKDancer {
-    constructor(beaver, bee) {
+    constructor(beaver, bee, lyrics) {
         this.dkImage = document.getElementById('dk-dancer');
         this.audio = document.getElementById('dk-rap');
         this.okayAudio = document.getElementById('okay-sound');
+        this.jungleAudio = document.getElementById('jungle-music');
         this.playButton = document.getElementById('play-button');
-        this.pauseButton = document.getElementById('pause-button');
-        this.resumeButton = document.getElementById('resume-button');
         
         this.currentFrame = 1;
         this.totalFrames = 23; // We have frames 01-23 for dance
@@ -36,6 +35,7 @@ window.DKDancer = class DKDancer {
         // Store references to other controllers
         this.beaver = beaver;
         this.bee = bee;
+        this.lyrics = lyrics;
         
         // Preload all DK frames to prevent loading errors
         this.preloadedSwingImages = new Map();
@@ -43,6 +43,7 @@ window.DKDancer = class DKDancer {
         
         this.buildIntroSequence();
         this.preloadFrames();
+        this.preloadAudio();
         this.init();
     }
     
@@ -109,6 +110,35 @@ window.DKDancer = class DKDancer {
         }
     }
     
+    preloadAudio() {
+        console.log('🎵 Preloading audio files...');
+        
+        // Force preload by setting the preload attribute and loading
+        this.audio.preload = 'auto';
+        this.okayAudio.preload = 'auto';
+        this.jungleAudio.preload = 'auto';
+        
+        // Load the audio files
+        this.audio.load();
+        this.okayAudio.load();
+        this.jungleAudio.load();
+        
+        // Add event listeners to track loading
+        this.audio.addEventListener('canplaythrough', () => {
+            console.log('🎵 DK Rap preloaded successfully!');
+        }, { once: true });
+        
+        this.okayAudio.addEventListener('canplaythrough', () => {
+            console.log('🎵 OKAY sound preloaded successfully!');
+        }, { once: true });
+        
+        this.jungleAudio.addEventListener('canplaythrough', () => {
+            console.log('🎵 Jungle music preloaded successfully!');
+        }, { once: true });
+        
+        console.log('🎵 Audio preloading initiated...');
+    }
+    
     playIntroAnimation() {
         if (this.isPlayingIntro) return;
         
@@ -131,11 +161,16 @@ window.DKDancer = class DKDancer {
         this.dkImage.classList.remove('flipped', 'falling', 'dancing-final');
         this.dkImage.classList.add('visible', 'swinging');
         
-        // Play OKAY sound
+        // Play OKAY sound and start lyrics early
         this.okayAudio.currentTime = 0;
         this.okayAudio.play().catch(error => {
             console.error('Could not play OKAY sound:', error);
         });
+        
+        // Start lyrics scrolling at the very beginning
+        if (this.lyrics) {
+            this.lyrics.startScrolling();
+        }
         
         console.log('🎬 Starting DK intro animation!');
         
@@ -274,8 +309,9 @@ window.DKDancer = class DKDancer {
     init() {
         // Set up event listeners
         this.playButton.addEventListener('click', () => this.startDanceParty());
-        this.pauseButton.addEventListener('click', () => this.pauseMusic());
-        this.resumeButton.addEventListener('click', () => this.resumeMusic());
+        
+        // Make DK clickable for pause/resume
+        this.dkImage.addEventListener('click', () => this.toggleMusicFromDK());
         
         // Debug slider setup
         this.setupDebugSlider();
@@ -293,7 +329,8 @@ window.DKDancer = class DKDancer {
         });
         
         this.audio.addEventListener('ended', () => {
-            this.stopDancing();
+            console.log('🎵 DK Rap ended, starting jungle music...');
+            this.startJungleMusic();
         });
         
         // Error handling
@@ -357,8 +394,6 @@ window.DKDancer = class DKDancer {
     
     startDanceParty() {
         this.playButton.style.display = 'none';
-        this.pauseButton.style.display = 'inline-block';
-        this.resumeButton.style.display = 'none';
         
         // Start with intro animation instead of going directly to dance
         this.playIntroAnimation();
@@ -383,6 +418,12 @@ window.DKDancer = class DKDancer {
         this.isFalling = false;
         this.fallingStarted = false;
         
+        // Stop all audio
+        this.audio.pause();
+        this.audio.currentTime = 0;
+        this.jungleAudio.pause();
+        this.jungleAudio.currentTime = 0;
+        
         document.body.classList.remove('dancing', 'music-playing');
         
         if (this.animationInterval) {
@@ -394,8 +435,24 @@ window.DKDancer = class DKDancer {
         this.dkImage.classList.remove('swinging', 'falling', 'dancing-final', 'visible');
         this.dkImage.style.transform = ''; // Clear any inline styles
         
+        // Stop lyrics
+        if (this.lyrics) {
+            this.lyrics.stopScrolling();
+        }
+        
         this.resetButtons();
         console.log('Dance party over!');
+    }
+    
+    startJungleMusic() {
+        // Switch to jungle music and keep dancing
+        this.jungleAudio.currentTime = 0;
+        this.jungleAudio.play().then(() => {
+            console.log('🌴 Jungle music is now playing! 🌴');
+            // Keep all animations running
+        }).catch((error) => {
+            console.error('Failed to play jungle music:', error);
+        });
     }
     
     nextFrame() {
@@ -506,8 +563,7 @@ window.DKDancer = class DKDancer {
     
     pauseMusic() {
         this.audio.pause();
-        this.pauseButton.style.display = 'none';
-        this.resumeButton.style.display = 'inline-block';
+        this.jungleAudio.pause();
         document.body.classList.remove('dancing');
         
         if (this.animationInterval) {
@@ -516,28 +572,39 @@ window.DKDancer = class DKDancer {
             this.isAnimating = false;
         }
         
-        // Pause all creatures and bananas
+        // Pause all creatures, bananas, and lyrics
         this.beaver.pauseAll();
         this.bee.pauseAll();
         window.BananaAnimation.pauseBananaAnimation();
+        if (this.lyrics) {
+            this.lyrics.pauseScrolling();
+        }
         console.log('🎵 All animations paused!');
     }
     
     resumeMusic() {
-        this.audio.play();
-        this.pauseButton.style.display = 'inline-block';
-        this.resumeButton.style.display = 'none';
+        // Resume whichever audio was playing
+        if (!this.audio.ended) {
+            this.audio.play();
+        } else {
+            this.jungleAudio.play();
+        }
         this.startDancing();
         
-        // Resume all creatures and bananas
+        // Resume all creatures, bananas, and lyrics
         this.beaver.resumeAll();
         this.bee.resumeAll();
         window.BananaAnimation.resumeBananaAnimation();
+        if (this.lyrics) {
+            this.lyrics.resumeScrolling();
+        }
         console.log('🎵 All animations resumed!');
     }
     
     toggleMusic() {
-        if (this.audio.paused) {
+        const isPlaying = !this.audio.paused || !this.jungleAudio.paused;
+        
+        if (!isPlaying) {
             if (this.audio.currentTime === 0) {
                 this.startDanceParty();
             } else {
@@ -548,10 +615,29 @@ window.DKDancer = class DKDancer {
         }
     }
     
+    toggleMusicFromDK() {
+        // Only allow DK click when dancing (has dancing-final class)
+        if (!this.dkImage.classList.contains('dancing-final')) {
+            return;
+        }
+        
+        const isPlaying = !this.audio.paused || !this.jungleAudio.paused;
+        
+        if (!isPlaying) {
+            // Resuming - no OKAY sound
+            this.resumeMusic();
+        } else {
+            // Pausing - play OKAY sound
+            this.okayAudio.currentTime = 0;
+            this.okayAudio.play().catch(error => {
+                console.error('Could not play OKAY sound:', error);
+            });
+            this.pauseMusic();
+        }
+    }
+    
     resetButtons() {
         this.playButton.style.display = 'inline-block';
-        this.pauseButton.style.display = 'none';
-        this.resumeButton.style.display = 'none';
     }
     
     increaseSpeed() {

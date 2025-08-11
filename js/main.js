@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create instances of all controllers
     const beaver = new window.BeaverWalker();
     const bee = new window.BeeFlyer();
-    const dancer = new window.DKDancer(beaver, bee); // Pass creature controllers to dancer
+    const lyrics = new window.LyricsDisplay();
+    const dancer = new window.DKDancer(beaver, bee, lyrics); // Pass creature controllers and lyrics to dancer
     
     // Start banana dropping interval
     window.BananaAnimation.startBananaAnimation();

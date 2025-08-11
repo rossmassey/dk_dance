@@ -101,6 +101,15 @@ body {
     transition: transform 0.1s ease-in-out; /* Restore normal transition for dance */
 }
 
+/* Make DK clickable when dancing */
+#dk-dancer.dancing-final {
+    cursor: pointer;
+}
+
+#dk-dancer.dancing-final:hover {
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+}
+
 /* Hover effects only apply when not dancing (no animation) */
 #dk-dancer:hover:not(.dancing) {
     transform: scale(4.2);
@@ -113,53 +122,29 @@ body {
 .play-button {
     position: absolute;
     bottom: 100px;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: 4px solid #8B4513;
-    border-radius: 20px;
-    padding: 20px 40px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #8B4513;
     cursor: pointer;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
 }
 
-.play-button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
+.play-button.dk-icon {
+    width: 150px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
 }
 
-.play-button:active {
-    transform: translateY(-2px);
+.play-button.dk-icon:hover {
+    transform: translateY(-5px) scale(1.1);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
 }
 
-.controls {
-    position: absolute;
-    bottom: 40px;
-    display: flex;
-    gap: 20px;
+.play-button.dk-icon:active {
+    transform: translateY(-2px) scale(1.05);
 }
 
-.control-button {
-    background: rgba(255, 215, 0, 0.9);
-    border: 3px solid #8B4513;
-    border-radius: 15px;
-    padding: 15px 25px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #8B4513;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-}
 
-.control-button:hover {
-    background: rgba(255, 165, 0, 0.9);
-    transform: translateY(-3px);
-}
 
 /* Animation for dancing effect */
 @keyframes dance-bounce {
@@ -368,6 +353,56 @@ body {
 
 /* Paused state for bee - stops the position animation */
 .bee-container.paused {
+    animation-play-state: paused !important;
+}
+
+/* Lyrics display */
+.lyrics-container {
+    position: fixed;
+    top: 0;
+    right: 20px;
+    width: 450px; /* Increased width to prevent wrapping of long lines */
+    height: 100vh;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.lyrics-container.visible {
+    opacity: 1;
+}
+
+.lyrics-content {
+    position: absolute;
+    top: 100vh;
+    width: 100%;
+    padding: 20px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    white-space: pre-line;
+    text-align: center;
+}
+
+/* Scrolling animation for lyrics */
+@keyframes lyrics-scroll {
+    0% {
+        top: 85vh; /* Start higher up to simulate 15 seconds already elapsed */
+    }
+    100% {
+        top: -100%;
+    }
+}
+
+.lyrics-content.scrolling {
+    animation: lyrics-scroll 188s linear forwards; /* Match full song length 3:23 (203s) minus 15s offset */
+}
+
+.lyrics-content.paused {
     animation-play-state: paused !important;
 }
 

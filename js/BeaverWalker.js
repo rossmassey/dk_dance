@@ -98,11 +98,11 @@ window.BeaverWalker = class BeaverWalker {
         // Schedule random stops during the walk
         this.scheduleRandomStops();
         
-        // Stop walking after 22 seconds (give extra time for CSS animation to complete)
+        // Stop walking after 25 seconds (give extra time for CSS animation to complete)
         setTimeout(() => {
             this.stopWalking();
             this.scheduleNextWalk();
-        }, 22000);
+        }, 25000);
         
         console.log(`🦫 A beaver is walking ${this.walkingRightToLeft ? 'right to left' : 'left to right'}!`);
     }

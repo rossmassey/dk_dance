@@ -30,11 +30,17 @@
             Your browser does not support the audio element.
         </audio>
         
-        <button id="play-button" class="play-button">🎵</button>
+        <audio id="jungle-music" loop>
+            <source src="music/jungle.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
         
-        <div class="controls">
-            <button id="pause-button" class="control-button" style="display: none;">⏸️ Pause</button>
-            <button id="resume-button" class="control-button" style="display: none;">▶️ Resume</button>
+        <img id="play-button" class="play-button dk-icon" src="sprite_sheet/dk_icon.png" alt="Start Dance Party">
+        
+
+        
+        <div id="lyrics-container" class="lyrics-container">
+            <div id="lyrics-content" class="lyrics-content"></div>
         </div>
         
 
@@ -44,6 +50,7 @@
     <script src="js/BananaAnimation.js"></script>
     <script src="js/BeaverWalker.js"></script>
     <script src="js/BeeFlyer.js"></script>
+    <script src="js/LyricsDisplay.js"></script>
     <script src="js/DKDancer.js"></script>
     <script src="js/main.js"></script>
 </body>
