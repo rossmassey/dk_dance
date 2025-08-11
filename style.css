@@ -13,7 +13,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     overflow: hidden;
-    font-family: 'Comic Sans MS', Arial, Helvetica, sans-serif;
+    font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;
 }
 
 .container {
@@ -379,7 +379,7 @@ body {
     top: 100vh;
     width: 100%;
     padding: 20px;
-    font-family: 'Comic Sans MS', Arial, Helvetica, sans-serif;
+    font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;
     font-size: 16px;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.8);
@@ -437,6 +437,13 @@ body {
         100% {
             top: -200%;
         }
+    }
+}
+
+/* Force font on mobile devices */
+@media screen and (max-width: 768px) {
+    body, .lyrics-content {
+        font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif !important;
     }
 }
 
