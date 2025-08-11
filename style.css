@@ -361,17 +361,22 @@ body {
     position: fixed;
     top: 0;
     right: 20px;
-    width: 350px; /* Reduced width to make room for controls */
+    width: 350px;
     height: 100vh;
-    pointer-events: none;
+    pointer-events: auto; /* Enable pointer events for scrolling */
     z-index: 5;
     overflow: hidden;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    cursor: grab; /* Show that it's interactive */
 }
 
 .lyrics-container.visible {
     opacity: 1;
+}
+
+.lyrics-container:active {
+    cursor: grabbing; /* Show grabbing cursor when scrolling */
 }
 
 .lyrics-content {
@@ -426,86 +431,7 @@ body {
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
-.lyrics-slider-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 10px;
-    border: 2px solid #FFD700;
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    transform: translateY(-10px);
-}
 
-.lyrics-container.visible ~ .lyrics-controls .lyrics-slider-container {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.lyrics-slider {
-    width: 200px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-}
-
-.lyrics-slider::-webkit-slider-thumb {
-    width: 18px;
-    height: 18px;
-    background: #FFD700;
-    border-radius: 50%;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    transition: all 0.2s ease;
-}
-
-.lyrics-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-}
-
-.lyrics-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: #FFD700;
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    transition: all 0.2s ease;
-}
-
-.auto-scroll-toggle {
-    padding: 8px 16px;
-    background: rgba(255, 215, 0, 0.2);
-    border: 1px solid #FFD700;
-    border-radius: 6px;
-    color: #FFD700;
-    font-size: 12px;
-    font-weight: bold;
-    font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    min-width: 60px;
-}
-
-.auto-scroll-toggle:hover {
-    background: rgba(255, 215, 0, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
 
 /* Mobile responsive adjustments */
 @media screen and (max-width: 768px) {
@@ -534,9 +460,7 @@ body {
         font-size: 18px;
     }
     
-    .lyrics-slider {
-        width: 160px; /* Shorter slider for mobile */
-    }
+
 }
 
 /* Extra small mobile screens */
@@ -556,9 +480,7 @@ body {
         left: 5px;
     }
     
-    .lyrics-slider {
-        width: 140px;
-    }
+
 }
 
 /* Landscape mobile orientation */
@@ -585,19 +507,7 @@ body {
         font-size: 16px;
     }
     
-    .lyrics-slider-container {
-        padding: 8px;
-    }
-    
-    .lyrics-slider {
-        width: 120px;
-    }
-    
-    .auto-scroll-toggle {
-        padding: 6px 12px;
-        font-size: 10px;
-        min-width: 50px;
-    }
+
 }
 
 /* Very small landscape screens */
@@ -617,9 +527,7 @@ body {
         font-size: 14px;
     }
     
-    .lyrics-slider {
-        width: 100px;
-    }
+
 }
 
 

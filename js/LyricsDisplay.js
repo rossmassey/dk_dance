@@ -35,38 +35,11 @@ window.LyricsDisplay = class LyricsDisplay {
         this.lyricsToggle.innerHTML = '📜';
         this.lyricsToggle.title = 'Toggle Lyrics';
         
-        // Create slider container
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'lyrics-slider-container';
-        
-        // Create scroll slider
-        this.lyricsSlider = document.createElement('input');
-        this.lyricsSlider.type = 'range';
-        this.lyricsSlider.id = 'lyrics-slider';
-        this.lyricsSlider.className = 'lyrics-slider';
-        this.lyricsSlider.min = '0';
-        this.lyricsSlider.max = '100';
-        this.lyricsSlider.value = '0';
-        this.lyricsSlider.title = 'Scroll through lyrics';
-        
-        // Create auto-scroll toggle
-        const autoScrollToggle = document.createElement('button');
-        autoScrollToggle.id = 'auto-scroll-toggle';
-        autoScrollToggle.className = 'auto-scroll-toggle';
-        autoScrollToggle.innerHTML = 'PAUSE';
-        autoScrollToggle.title = 'Toggle auto-scroll';
-        
-        // Assemble controls
-        sliderContainer.appendChild(this.lyricsSlider);
-        sliderContainer.appendChild(autoScrollToggle);
+        // Add only the toggle button to controls
         controlsContainer.appendChild(this.lyricsToggle);
-        controlsContainer.appendChild(sliderContainer);
         
         // Add to page
         document.querySelector('.container').appendChild(controlsContainer);
-        
-        // Store auto-scroll toggle for later use
-        this.autoScrollToggle = autoScrollToggle;
     }
     
     setupEventListeners() {
@@ -75,15 +48,39 @@ window.LyricsDisplay = class LyricsDisplay {
             this.toggleVisibility();
         });
         
-        // Manual scroll slider
-        this.lyricsSlider.addEventListener('input', (e) => {
-            this.scrollPosition = parseInt(e.target.value) / 100;
-            this.updateLyricsPosition();
+        // Direct scrolling on lyrics container
+        this.lyricsContainer.addEventListener('wheel', (e) => {
+            if (this.isVisible) {
+                e.preventDefault();
+                this.handleDirectScroll(e.deltaY);
+            }
         });
         
-        // Auto-scroll toggle
-        this.autoScrollToggle.addEventListener('click', () => {
-            this.toggleAutoScroll();
+        // Touch scrolling for mobile
+        let startY = 0;
+        let isDragging = false;
+        
+        this.lyricsContainer.addEventListener('touchstart', (e) => {
+            if (this.isVisible) {
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                // Stop auto-scroll when user starts manually scrolling
+                this.stopAutoScroll();
+            }
+        });
+        
+        this.lyricsContainer.addEventListener('touchmove', (e) => {
+            if (this.isVisible && isDragging) {
+                e.preventDefault();
+                const currentY = e.touches[0].clientY;
+                const deltaY = startY - currentY;
+                this.handleDirectScroll(deltaY);
+                startY = currentY;
+            }
+        });
+        
+        this.lyricsContainer.addEventListener('touchend', () => {
+            isDragging = false;
         });
         
         // Handle orientation change - preserve scroll position
@@ -97,6 +94,20 @@ window.LyricsDisplay = class LyricsDisplay {
         window.addEventListener('resize', () => {
             this.updateLyricsPosition();
         });
+    }
+    
+    handleDirectScroll(deltaY) {
+        // Convert deltaY to scroll position change
+        const scrollSensitivity = 0.001;
+        const deltaScroll = deltaY * scrollSensitivity;
+        
+        this.scrollPosition += deltaScroll;
+        
+        // Clamp between 0 and 1
+        if (this.scrollPosition < 0) this.scrollPosition = 0;
+        if (this.scrollPosition > 1) this.scrollPosition = 1;
+        
+        this.updateLyricsPosition();
     }
     
     loadLyrics() {
@@ -202,7 +213,6 @@ Aww yeah!`;
         // Calculate the scroll position based on content height and viewport
         const containerHeight = this.lyricsContainer.offsetHeight;
         const contentHeight = this.lyricsContent.offsetHeight;
-        const totalScrollDistance = contentHeight + containerHeight;
         
         // Calculate top position: start below viewport, end above viewport
         const startPosition = containerHeight;
@@ -210,11 +220,6 @@ Aww yeah!`;
         const currentPosition = startPosition + (endPosition - startPosition) * this.scrollPosition;
         
         this.lyricsContent.style.top = `${currentPosition}px`;
-        
-        // Update slider if not currently being dragged
-        if (document.activeElement !== this.lyricsSlider) {
-            this.lyricsSlider.value = Math.round(this.scrollPosition * 100);
-        }
     }
     
     toggleVisibility() {
@@ -237,13 +242,9 @@ Aww yeah!`;
         this.isAutoScrolling = !this.isAutoScrolling;
         
         if (this.isAutoScrolling) {
-            this.autoScrollToggle.innerHTML = 'PAUSE';
-            this.autoScrollToggle.title = 'Pause auto-scroll';
             this.startAutoScroll();
             console.log('📜 Auto-scroll started');
         } else {
-            this.autoScrollToggle.innerHTML = 'PLAY';
-            this.autoScrollToggle.title = 'Start auto-scroll';
             this.stopAutoScroll();
             console.log('📜 Auto-scroll paused');
         }
