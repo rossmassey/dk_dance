@@ -390,7 +390,7 @@ body {
 
 .lyrics-content {
     position: absolute;
-    top: 100vh; /* Start below viewport */
+    top: 100%; /* Start below container (not viewport) */
     width: 100%;
     padding: 20px;
     font-family: "Comic Sans MS", "Comic Sans", Arial, Helvetica, sans-serif;

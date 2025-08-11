@@ -18,6 +18,11 @@ window.LyricsDisplay = class LyricsDisplay {
         this.createLyricsControls();
         this.loadLyrics();
         this.setupEventListeners();
+        
+        // Ensure proper initial positioning
+        setTimeout(() => {
+            this.resetToStart();
+        }, 100);
     }
     
     createLyricsControls() {
@@ -52,6 +57,8 @@ window.LyricsDisplay = class LyricsDisplay {
         this.lyricsContainer.addEventListener('wheel', (e) => {
             if (this.isVisible) {
                 e.preventDefault();
+                // On desktop, allow manual scrolling without stopping auto-scroll
+                // Auto-scroll will continue in the background
                 this.handleDirectScroll(e.deltaY);
             }
         });
@@ -59,13 +66,19 @@ window.LyricsDisplay = class LyricsDisplay {
         // Touch scrolling for mobile
         let startY = 0;
         let isDragging = false;
+        let wasAutoScrolling = false;
+        let touchEndTimeout = null;
         
         this.lyricsContainer.addEventListener('touchstart', (e) => {
             if (this.isVisible) {
                 startY = e.touches[0].clientY;
                 isDragging = true;
+                // Remember if auto-scroll was active before stopping
+                wasAutoScrolling = this.isAutoScrolling;
                 // Stop auto-scroll when user starts manually scrolling
-                this.stopAutoScroll();
+                if (this.isAutoScrolling) {
+                    this.stopAutoScroll();
+                }
             }
         });
         
@@ -76,11 +89,28 @@ window.LyricsDisplay = class LyricsDisplay {
                 const deltaY = startY - currentY;
                 this.handleDirectScroll(deltaY);
                 startY = currentY;
+                
+                // Clear any pending auto-scroll resume
+                if (touchEndTimeout) {
+                    clearTimeout(touchEndTimeout);
+                    touchEndTimeout = null;
+                }
             }
         });
         
         this.lyricsContainer.addEventListener('touchend', () => {
             isDragging = false;
+            
+            // Resume auto-scroll after a short delay if it was previously active
+            if (wasAutoScrolling && this.isVisible) {
+                touchEndTimeout = setTimeout(() => {
+                    if (!isDragging && !this.isAutoScrolling) {
+                        this.isAutoScrolling = true;
+                        this.startAutoScroll();
+                        console.log('📜 Auto-scroll resumed after manual touch');
+                    }
+                }, 1500); // Wait 1.5 seconds after touch ends
+            }
         });
         
         // Handle orientation change - preserve scroll position
@@ -214,7 +244,8 @@ Aww yeah!`;
         const containerHeight = this.lyricsContainer.offsetHeight;
         const contentHeight = this.lyricsContent.offsetHeight;
         
-        // Calculate top position: start below viewport, end above viewport
+        // Calculate top position: start below container viewport, end above container viewport
+        // This ensures consistent behavior regardless of container positioning
         const startPosition = containerHeight;
         const endPosition = -contentHeight;
         const currentPosition = startPosition + (endPosition - startPosition) * this.scrollPosition;
@@ -229,6 +260,10 @@ Aww yeah!`;
             this.lyricsContainer.classList.add('visible');
             this.lyricsToggle.innerHTML = '❌';
             this.lyricsToggle.title = 'Hide Lyrics';
+            // Ensure proper initial positioning when showing lyrics
+            setTimeout(() => {
+                this.updateLyricsPosition();
+            }, 50);
             console.log('📜 Lyrics shown');
         } else {
             this.lyricsContainer.classList.remove('visible');
@@ -308,8 +343,13 @@ Aww yeah!`;
         if (this.isVisible) {
             this.toggleVisibility();
         }
+        this.resetToStart();
+    }
+    
+    resetToStart() {
         this.scrollPosition = 0;
         this.updateLyricsPosition();
+        console.log('📜 Lyrics reset to start position');
     }
     
     reset() {
